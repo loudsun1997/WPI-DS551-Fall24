@@ -1,5 +1,5 @@
 ### MDP Value Iteration and Policy Iteration
-### Reference: https://web.stanford.edu/class/cs234/assignment1/index.html 
+### Reference: https://web.stanford.edu/class/cs234/assignment1/index.html
 # Modified By Yanhua Li on 09/09/2022 for gym==0.25.2
 # Modified By Yanhua Li on 08/19/2023 for gymnasium==0.29.0
 import numpy as np
@@ -49,33 +49,33 @@ def policy_evaluation(P, nS, nA, policy, gamma=0.9, tol=1e-8):
         The value function of the given policy, where value_function[s] is
         the value of state s
     """
-    
+
     value_function = np.zeros(nS)
     ############################
     # YOUR IMPLEMENTATION HERE #
     #                          #
     ############################
 
-    policy_1D = np.argmax(policy, axis=1)
-    
     while True:
         delta = 0
         for s in range(nS):
             v = 0
-            # print(policy_1D.shape)
 
-            action = policy_1D[s]
-            for probability, next_state, reward, terminal in P[s][action]:
-                if terminal:
-                    v += probability * reward
-                else:
-                    v += probability * (reward + gamma * value_function[next_state])
+            for a in range(nA):
+                action_prob = policy[s, a]
+                # print('displaying entire P', P.shape)
+
+                for probability, next_state, reward, terminal in P[s][a]:
+                    v += action_prob * probability * (reward + gamma * value_function[next_state] * (not terminal))
+
             delta = max(delta, abs(v - value_function[s]))
             value_function[s] = v
         if delta < tol:
             break
 
-    return value_function   
+    print("Value function after evaluation:", value_function)
+
+    return value_function
 
 
 
@@ -94,7 +94,7 @@ def policy_improvement(P, nS, nA, value_from_policy, gamma=0.9):
     --------
     new_policy: np.ndarray[nS,nA]
         A 2D array of floats. Each float is the probability of the action
-        to take in that state according to the environment dynamics and the 
+        to take in that state according to the environment dynamics and the
         given value function.
     """
 
@@ -103,7 +103,31 @@ def policy_improvement(P, nS, nA, value_from_policy, gamma=0.9):
     # YOUR IMPLEMENTATION HERE #
     #                          #
     ############################
+
+    for s in range(nS):
+        q_values = np.zeros(nA)
+
+        for a in range(nA):
+            for probability, next_state, reward, terminal in P[s][a]:
+                q_values[a] += probability * (reward + gamma * value_from_policy[next_state] * (not terminal))
+            # q_values[a] = sum(
+            #     probability * (reward + gamma * value_from_policy[next_state] * (not terminal))
+            #     for probability, next_state, reward, terminal in P[s][a]
+            # )
+
+        print(f"State {s} Q-values: {q_values}")
+
+        best_action = np.argmax(q_values)
+
+        new_policy[s] = np.zeros(nA)
+        new_policy[s][best_action] = 1.0
+
+        print(f"Chosen best action for state {s}: {best_action}")
+        print(f"New policy for state {s}: {new_policy[s]}")
+
+    print("New policy after improvement:", new_policy)
     return new_policy
+
 
 
 def policy_iteration(P, nS, nA, policy, gamma=0.9, tol=1e-8):
@@ -170,7 +194,7 @@ def render_single(env, policy, render = False, n_episodes=100):
     policy: np.array of shape [env.nS, env.nA]
       The action to take at a given state
     render: whether or not to render the game(it's slower to render the game)
-    n_episodes: the number of episodes to play in the game. 
+    n_episodes: the number of episodes to play in the game.
     Returns:
     ------
     total_rewards: the total number of rewards achieved in the game.
@@ -186,7 +210,7 @@ def render_single(env, policy, render = False, n_episodes=100):
             # YOUR IMPLEMENTATION HERE #
             #                          #
             ############################
-            
+
     return total_rewards
 
 
