@@ -10,25 +10,25 @@ np.set_printoptions(precision=3)
 For policy_evaluation, policy_improvement, policy_iteration and value_iteration,
 the parameters P, nS, nA, gamma are defined as follows:
 
-	P: nested dictionary
-		From gym.core.Environment
-		For each pair of states in [1, nS] and actions in [1, nA], P[state][action] is a
-		tuple of the form (probability, nextstate, reward, terminal) where
-			- probability: float
-				the probability of transitioning from "state" to "nextstate" with "action"
-			- nextstate: int
-				denotes the state we transition to (in range [0, nS - 1])
-			- reward: int
-				either 0 or 1, the reward for transitioning from "state" to
-				"nextstate" with "action"
-			- terminal: bool
-			  True when "nextstate" is a terminal state (hole or goal), False otherwise
-	nS: int
-		number of states in the environment
-	nA: int
-		number of actions in the environment
-	gamma: float
-		Discount factor. Number in range [0, 1)
+    P: nested dictionary
+        From gym.core.Environment
+        For each pair of states in [1, nS] and actions in [1, nA], P[state][action] is a
+        tuple of the form (probability, nextstate, reward, terminal) where
+            - probability: float
+                the probability of transitioning from "state" to "nextstate" with "action"
+            - nextstate: int
+                denotes the state we transition to (in range [0, nS - 1])
+            - reward: int
+                either 0 or 1, the reward for transitioning from "state" to
+                "nextstate" with "action"
+            - terminal: bool
+              True when "nextstate" is a terminal state (hole or goal), False otherwise
+    nS: int
+        number of states in the environment
+    nA: int
+        number of actions in the environment
+    gamma: float
+        Discount factor. Number in range [0, 1)
 """
 
 def policy_evaluation(P, nS, nA, policy, gamma=0.9, tol=1e-8):
@@ -55,7 +55,30 @@ def policy_evaluation(P, nS, nA, policy, gamma=0.9, tol=1e-8):
     # YOUR IMPLEMENTATION HERE #
     #                          #
     ############################
-    return value_function 
+
+    policy_1D = np.argmax(policy, axis=1)
+    
+    while True:
+        delta = 0
+        for s in range(nS):
+            v = 0
+            # print(policy_1D.shape)
+
+            action = policy_1D[s]
+            for probability, next_state, reward, terminal in P[s][action]:
+                if terminal:
+                    v += probability * reward
+                else:
+                    v += probability * (reward + gamma * value_function[next_state])
+            delta = max(delta, abs(v - value_function[s]))
+            value_function[s] = v
+        if delta < tol:
+            break
+
+    return value_function   
+
+
+
 
 
 def policy_improvement(P, nS, nA, value_from_policy, gamma=0.9):
@@ -76,10 +99,10 @@ def policy_improvement(P, nS, nA, value_from_policy, gamma=0.9):
     """
 
     new_policy = np.ones([nS, nA]) / nA # policy as a uniform distribution
-	############################
-	# YOUR IMPLEMENTATION HERE #
+    ############################
+    # YOUR IMPLEMENTATION HERE #
     #                          #
-	############################
+    ############################
     return new_policy
 
 
@@ -102,10 +125,10 @@ def policy_iteration(P, nS, nA, policy, gamma=0.9, tol=1e-8):
     V: np.ndarray[nS]
     """
     new_policy = policy.copy()
-	############################
-	# YOUR IMPLEMENTATION HERE #
+    ############################
+    # YOUR IMPLEMENTATION HERE #
     #                          #
-	############################
+    ############################
     return new_policy, V
 
 def value_iteration(P, nS, nA, V, gamma=0.9, tol=1e-8):
