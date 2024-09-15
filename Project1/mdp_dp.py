@@ -156,6 +156,15 @@ def policy_iteration(P, nS, nA, policy, gamma=0.9, tol=1e-8):
     # YOUR IMPLEMENTATION HERE #
     #                          #
     ############################
+    while True:
+        V = policy_evaluation(P, nS, nA, new_policy, gamma=gamma, tol=tol)
+        improved_policy = policy_improvement(P, nS, nA, V, gamma=gamma)
+
+        if np.array_equal(improved_policy, new_policy):
+            break
+        else:
+            new_policy = improved_policy
+
     return new_policy, V
 
 def value_iteration(P, nS, nA, V, gamma=0.9, tol=1e-8):
@@ -182,6 +191,30 @@ def value_iteration(P, nS, nA, V, gamma=0.9, tol=1e-8):
     # YOUR IMPLEMENTATION HERE #
     #                          #
     ############################
+
+    while True:
+        delta = 0
+        for s in range(nS):
+            q_values = np.zeros(nA)
+            for a in range(nA):
+                for probability, next_state, reward, terminal in P[s][a]:
+                    q_values[a] += probability * (reward + gamma * V[next_state])
+            V_new[s] = max(q_values)
+            delta = max(delta, abs(V_new[s] - V[s]))
+        if delta < tol:
+            break
+        # V = V_new.copy()
+        V[:] = V_new
+
+    for s in range(nS):
+        q_values = np.zeros(nA)
+        for a in range(nA):
+            for probability, next_state, reward, terminal in P[s][a]:
+                q_values[a] += probability * (reward + gamma * V_new[next_state])
+        best_action = np.argmax(q_values)
+        policy_new[s] = np.zeros(nA)
+        policy_new[s][best_action] = 1.0
+
     return policy_new, V_new
 
 def render_single(env, policy, render = False, n_episodes=100):
@@ -203,7 +236,8 @@ def render_single(env, policy, render = False, n_episodes=100):
     total_rewards: the total number of rewards achieved in the game.
     """
     total_rewards = 0
-    for _ in range(n_episodes):
+    for episode in range(n_episodes):
+        print("episode number:", episode)
         ob, _ = env.reset() # initialize the episode
         done = False
         while not done: # using "not truncated" as well, when using time_limited wrapper.
@@ -213,6 +247,13 @@ def render_single(env, policy, render = False, n_episodes=100):
             # YOUR IMPLEMENTATION HERE #
             #                          #
             ############################
+            action = np.argmax(policy[ob])
+            # print('action probabilities', action)
+
+            next_ob, reward, done, _, _ = env.step(action)
+
+            total_rewards += reward
+            ob = next_ob
 
     return total_rewards
 
