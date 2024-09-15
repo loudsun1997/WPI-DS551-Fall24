@@ -109,20 +109,23 @@ def policy_improvement(P, nS, nA, value_from_policy, gamma=0.9):
 
         for a in range(nA):
             for probability, next_state, reward, terminal in P[s][a]:
-                q_values[a] += probability * (reward + gamma * value_from_policy[next_state] * (not terminal))
+                print('value from policy',value_from_policy[next_state])
+                # q_values[a] += probability * (reward + gamma * value_from_policy[next_state] * (not terminal))
+                q_values[a] += probability * (reward + gamma * value_from_policy[next_state])
+
             # q_values[a] = sum(
             #     probability * (reward + gamma * value_from_policy[next_state] * (not terminal))
             #     for probability, next_state, reward, terminal in P[s][a]
             # )
 
-        print(f"State {s} Q-values: {q_values}")
+        # print(f"State {s} Q-values: {q_values}")
 
         best_action = np.argmax(q_values)
 
         new_policy[s] = np.zeros(nA)
         new_policy[s][best_action] = 1.0
 
-        print(f"Chosen best action for state {s}: {best_action}")
+        # print(f"Chosen best action for state {s}: {best_action}")
         print(f"New policy for state {s}: {new_policy[s]}")
 
     print("New policy after improvement:", new_policy)

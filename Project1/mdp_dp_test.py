@@ -98,8 +98,7 @@ def test_policy_improvement():
        [1., 0., 0., 0.]])
     
     assert np.allclose(test_policy1,new_policy1)
-    # assert np.allclose(test_policy2,new_policy2)
-    
+    assert np.allclose(test_policy2,new_policy2)
 
     
 #---------------------------------------------------------------
