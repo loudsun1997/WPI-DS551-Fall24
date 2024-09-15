@@ -63,7 +63,7 @@ def policy_evaluation(P, nS, nA, policy, gamma=0.9, tol=1e-8):
 
             for a in range(nA):
                 action_prob = policy[s, a]
-                # print('displaying entire P', P.shape)
+                # # print('displaying entire P', P.shape)
 
                 for probability, next_state, reward, terminal in P[s][a]:
                     v += action_prob * probability * (reward + gamma * value_function[next_state] * (not terminal))
@@ -73,7 +73,7 @@ def policy_evaluation(P, nS, nA, policy, gamma=0.9, tol=1e-8):
         if delta < tol:
             break
 
-    print("Value function after evaluation:", value_function)
+    # # print("Value function after evaluation:", value_function)
 
     return value_function
 
@@ -109,7 +109,7 @@ def policy_improvement(P, nS, nA, value_from_policy, gamma=0.9):
 
         for a in range(nA):
             for probability, next_state, reward, terminal in P[s][a]:
-                print('value from policy',value_from_policy[next_state])
+                # print('value from policy',value_from_policy[next_state])
                 # q_values[a] += probability * (reward + gamma * value_from_policy[next_state] * (not terminal))
                 q_values[a] += probability * (reward + gamma * value_from_policy[next_state])
 
@@ -118,17 +118,17 @@ def policy_improvement(P, nS, nA, value_from_policy, gamma=0.9):
             #     for probability, next_state, reward, terminal in P[s][a]
             # )
 
-        # print(f"State {s} Q-values: {q_values}")
+        # # print(f"State {s} Q-values: {q_values}")
 
         best_action = np.argmax(q_values)
 
         new_policy[s] = np.zeros(nA)
         new_policy[s][best_action] = 1.0
 
-        # print(f"Chosen best action for state {s}: {best_action}")
-        print(f"New policy for state {s}: {new_policy[s]}")
+        # # print(f"Chosen best action for state {s}: {best_action}")
+        # print(f"New policy for state {s}: {new_policy[s]}")
 
-    print("New policy after improvement:", new_policy)
+    # print("New policy after improvement:", new_policy)
     return new_policy
 
 
@@ -237,7 +237,7 @@ def render_single(env, policy, render = False, n_episodes=100):
     """
     total_rewards = 0
     for episode in range(n_episodes):
-        print("episode number:", episode)
+        # print("episode number:", episode)
         ob, _ = env.reset() # initialize the episode
         done = False
         while not done: # using "not truncated" as well, when using time_limited wrapper.
@@ -248,7 +248,7 @@ def render_single(env, policy, render = False, n_episodes=100):
             #                          #
             ############################
             action = np.argmax(policy[ob])
-            # print('action probabilities', action)
+            # # print('action probabilities', action)
 
             next_ob, reward, done, _, _ = env.step(action)
 
