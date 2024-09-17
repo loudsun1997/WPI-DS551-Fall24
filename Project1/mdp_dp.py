@@ -157,8 +157,8 @@ def policy_iteration(P, nS, nA, policy, gamma=0.9, tol=1e-8):
     #                          #
     ############################
     while True:
-        V = policy_evaluation(P, nS, nA, new_policy, gamma=gamma, tol=tol)
-        improved_policy = policy_improvement(P, nS, nA, V, gamma=gamma)
+        V = policy_evaluation(P, nS, nA, new_policy, gamma, tol)
+        improved_policy = policy_improvement(P, nS, nA, V, gamma)
 
         if np.array_equal(improved_policy, new_policy):
             break
@@ -197,7 +197,7 @@ def value_iteration(P, nS, nA, V, gamma=0.9, tol=1e-8):
         for s in range(nS):
             q_values = np.zeros(nA)
             for a in range(nA):
-                for probability, next_state, reward, terminal in P[s][a]:
+                for probability, next_state, reward, _ in P[s][a]:
                     q_values[a] += probability * (reward + gamma * V[next_state])
             V_new[s] = max(q_values)
             delta = max(delta, abs(V_new[s] - V[s]))
@@ -209,7 +209,7 @@ def value_iteration(P, nS, nA, V, gamma=0.9, tol=1e-8):
     for s in range(nS):
         q_values = np.zeros(nA)
         for a in range(nA):
-            for probability, next_state, reward, terminal in P[s][a]:
+            for probability, next_state, reward, _ in P[s][a]:
                 q_values[a] += probability * (reward + gamma * V_new[next_state])
         best_action = np.argmax(q_values)
         policy_new[s] = np.zeros(nA)

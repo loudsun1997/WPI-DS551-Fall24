@@ -2,7 +2,7 @@ import gymnasium as gym
 import numpy as np
 
 # Step 1: Set Up the Environment
-env = gym.make('FrozenLake-v1', desc=None, map_name="4x4", is_slippery=True, render_mode="human")
+env = gym.make('FrozenLake-v1', desc=None, map_name="8x8", is_slippery=True, render_mode="human")
 
 # Extract environment details
 nS = env.observation_space.n  # Number of states
