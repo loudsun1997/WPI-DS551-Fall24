@@ -66,7 +66,7 @@ def policy_evaluation(P, nS, nA, policy, gamma=0.9, tol=1e-8):
                 # # print('displaying entire P', P.shape)
 
                 for probability, next_state, reward, terminal in P[s][a]:
-                    v += action_prob * probability * (reward + gamma * value_function[next_state] * (not terminal))
+                    v += action_prob * probability * (reward + gamma * value_function[next_state])
 
             delta = max(delta, abs(v - value_function[s]))
             value_function[s] = v
