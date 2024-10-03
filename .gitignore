@@ -9,3 +9,5 @@ __pycache__/
 venv/
 env/
 .venv/
+*.env
+Project2/Project2-1/project2_part1_venv
