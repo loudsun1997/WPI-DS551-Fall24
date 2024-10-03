@@ -9,6 +9,7 @@ Created on Fri Aug 23 16:11:22 2019
 import numpy as np
 import random
 from collections import defaultdict
+from tqdm import tqdm
 #-------------------------------------------------------------------------
 '''
     Monte-Carlo
@@ -37,7 +38,12 @@ def initial_policy(observation):
     # YOUR IMPLEMENTATION HERE #
     #                          #
     ############################
-    return action
+
+    player_score = observation[0]
+    if player_score >= 20:
+        return 0
+    else:
+        return 1
 
 
 def mc_prediction(policy, env, n_episodes, gamma=1.0):
@@ -70,6 +76,31 @@ def mc_prediction(policy, env, n_episodes, gamma=1.0):
     #                          #
     ############################
 
+    for x in tqdm(range(n_episodes), desc="Processing Episodes"):
+        episode_data = []
+        state = env.reset()[0]
+        done = False
+
+        while not done:
+            print(state)
+            action = policy(state)  # Pass only the relevant part of the state to the policy
+            next_state, reward, done, _, _ = env.step(action)
+            episode_data.append((state, reward))  # Append only the relevant part of the state
+            state = next_state
+
+        G = 0
+        first_visit_states = set()
+
+        for t in reversed(range(len(episode_data))):
+            state_t, reward_t = episode_data[t]
+            G = gamma * G + reward_t
+
+            if state_t not in first_visit_states:
+                first_visit_states.add(state_t)
+                returns_sum[state_t] += G
+                returns_count[state_t] += 1
+                V[state_t] = returns_sum[state_t] / returns_count[state_t]
+
     return V
 
 
@@ -81,7 +112,7 @@ def epsilon_greedy(Q, state, nA, epsilon=0.1):
     Q: dict()
         A dictionary  that maps from state -> action-values,
         where Q[s][a] is the estimated action value corresponding to state s and action a.
-    state: 
+    state:
         current state
     nA: int
         Number of actions in the environment
