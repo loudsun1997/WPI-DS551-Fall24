@@ -132,6 +132,14 @@ def epsilon_greedy(Q, state, nA, epsilon=0.1):
     # YOUR IMPLEMENTATION HERE #
     #                          #
     ############################
+
+    if state not in Q:
+        Q[state] = np.zeros(nA)
+
+    if random.random() > epsilon:
+        action = np.argmax(Q[state])
+    else:
+        action = random.choice(range(nA))
     return action
 
 
@@ -170,5 +178,33 @@ def mc_control_epsilon_greedy(env, n_episodes, gamma=1.0, epsilon=0.1):
     # YOUR IMPLEMENTATION HERE #
     #                          #
     ############################
+
+    for episode in range(n_episodes):
+        episode_data = []
+        state = env.reset()[0]
+        done = False
+
+        while not done:
+            action = epsilon_greedy(Q, state, env.action_space.n, epsilon)
+
+            next_state, reward, done, _, _ = env.step(action)
+            episode_data.append((state, action, reward)) 
+            state = next_state 
+
+        G = 0
+        first_visit_pairs = set()
+
+        for t in reversed(range(len(episode_data))):
+            state_t, action_t, reward_t = episode_data[t]
+            G = gamma * G + reward_t
+
+            if (state_t, action_t) not in first_visit_pairs:
+                first_visit_pairs.add((state_t, action_t))
+                Q[state_t][action_t] += (G - Q[state_t][action_t]) / (returns_count[(state_t, action_t)] + 1)
+                returns_count[(state_t, action_t)] += 1
+        
+        epsilon = max(epsilon - 0.1 / n_episodes, 0.01)
+    
+    return Q
 
     return Q
