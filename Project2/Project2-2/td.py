@@ -9,26 +9,26 @@ from collections import defaultdict
     Temporal Difference
     In this problem, you will implememnt an AI player for cliffwalking.
     The main goal of this problem is to get familar with temporal diference algorithm.
-    You could test the correctness of your code 
+    You could test the correctness of your code
     by typing 'nosetests -v td_test.py' in the terminal.
 '''
 #-------------------------------------------------------------------------
 
 def epsilon_greedy(Q, state, nA, epsilon = 0.1):
     """Selects epsilon-greedy action for supplied state.
-    
+
     Parameters:
     -----------
     Q: dict()
         A dictionary  that maps from state -> action-values,
-        where A[s][a] is the estimated action value corresponding to state s and action a. 
+        where A[s][a] is the estimated action value corresponding to state s and action a.
     state: int
         current state
     nA: int
         Number of actions in the environment
     epsilon: float
         The probability to select a random action, range between 0 and 1
-    
+
     Returns:
     --------
     action: int
@@ -40,12 +40,18 @@ def epsilon_greedy(Q, state, nA, epsilon = 0.1):
     # YOUR IMPLEMENTATION HERE #
     #                          #
     ############################
+
+    if random.random() > epsilon:
+        action = np.argmax(Q[state])
+    else:
+        action = np.random.choice(np.arange(nA))
+
     return action
 
 def sarsa(env, n_episodes, gamma=1.0, alpha=0.5, epsilon=0.1):
     '''20 points'''
     """On-policy TD control. Find an optimal epsilon-greedy policy.
-    
+
     Parameters:
     -----------
     env: function
@@ -62,26 +68,42 @@ def sarsa(env, n_episodes, gamma=1.0, alpha=0.5, epsilon=0.1):
     --------
     Q: dict()
         A dictionary  that maps from state -> action-values,
-        where A[s][a] is the estimated action value corresponding to state s and action a. 
+        where A[s][a] is the estimated action value corresponding to state s and action a.
     Hints:
     -----
     You could consider decaying epsilon, i.e. epsilon = 0.99*epsilon during each episode.
     """
-    
+
     # a nested dictionary that maps state -> (action -> action-value)
     # e.g. Q[state] = np.darrary(nA)
     Q = defaultdict(lambda: np.zeros(env.action_space.n))
-    
+
     ############################
     # YOUR IMPLEMENTATION HERE #
     #                          #
     ############################
+
+    for _ in range(n_episodes):
+        state = env.reset()[0]
+        action = epsilon_greedy(Q, state, env.action_space.n, epsilon)
+        while True:
+            next_state, reward, done, _, _ = env.step(action)
+            next_action = epsilon_greedy(Q, next_state, env.action_space.n, epsilon)
+            Q[state][action] += alpha * (reward + gamma * Q[next_state][next_action] - Q[state][action])
+            state = next_state
+            action = next_action
+
+
+            if done:
+                break
+
+        epsilon = 0.99 * epsilon
     return Q
 
 def q_learning(env, n_episodes, gamma=1.0, alpha=0.5, epsilon=0.1):
     '''20 points'''
     """Off-policy TD control. Find an optimal epsilon-greedy policy.
-    
+
     Parameters:
     -----------
     env: function
@@ -98,12 +120,12 @@ def q_learning(env, n_episodes, gamma=1.0, alpha=0.5, epsilon=0.1):
     --------
     Q: dict()
         A dictionary  that maps from state -> action-values,
-        where A[s][a] is the estimated action value corresponding to state s and action a. 
+        where A[s][a] is the estimated action value corresponding to state s and action a.
     """
     # a nested dictionary that maps state -> (action -> action-value)
     # e.g. Q[state] = np.darrary(nA)
     Q = defaultdict(lambda: np.zeros(env.action_space.n))
-    
+
     ############################
     # YOUR IMPLEMENTATION HERE #
     #                          #
