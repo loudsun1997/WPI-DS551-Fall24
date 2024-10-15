@@ -1,0 +1,1 @@
+mcp is the parallel processing version that I asked chatgpt to help me create. It runs all episodes at the same time and use 100% of the CPU and all 8 cores on my machine. It runs much faster than the original version. The original version is also included in the folder.
