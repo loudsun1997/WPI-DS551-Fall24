@@ -30,6 +30,15 @@ class DQN(nn.Module):
         super(DQN, self).__init__()
         ###########################
         # YOUR IMPLEMENTATION HERE #
+        self.conv1 = nn.Conv2d(in_channels, 32, kernel_size=8, stride=4)
+        self.conv2 = nn.Conv2d(32, 64, kernel_size=4, stride=2)
+        self.conv3 = nn.Conv2d(64, 64, kernel_size=3, stride=1)
+
+        # Fully connected layers
+        # The input size for fc1 depends on the output size after the conv layers
+        # With 84x84 input, conv layers reduce it to 7x7 feature map
+        self.fc1 = nn.Linear(64 * 7 * 7, 512)
+        self.fc2 = nn.Linear(512, num_actions)  # Output layer for Q-values
 
     def forward(self, x):
         """
@@ -39,6 +48,17 @@ class DQN(nn.Module):
         """
         ###########################
         # YOUR IMPLEMENTATION HERE #
+
+        x = F.relu(self.conv1(x))  # [batch_size, 32, 20, 20]
+        x = F.relu(self.conv2(x))  # [batch_size, 64, 9, 9]
+        x = F.relu(self.conv3(x))  # [batch_size, 64, 7, 7]
+
+        # Flatten the output from the conv layers to feed into the fully connected layers
+        x = x.view(x.size(0), -1)  # [batch_size, 64*7*7]
+
+        # Pass through fully connected layers
+        x = F.relu(self.fc1(x))  # [batch_size, 512]
+        x = self.fc2(x)          # [batch_size, num_actions] (Q-values)
 
         ###########################
         return x
