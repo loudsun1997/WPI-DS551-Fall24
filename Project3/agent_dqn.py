@@ -36,8 +36,11 @@ class Agent_DQN(Agent):
         super(Agent_DQN,self).__init__(env)
         ###########################
         # YOUR IMPLEMENTATION HERE #
-        self.q_net = DQN()  # Define Q-network
-        self.target_q_net = DQN()  # Define target Q-network
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')  # Check if GPU is available
+
+        # Move models to the GPU
+        self.q_net = DQN().to(device)  # Define Q-network
+        self.target_q_net = DQN().to(device)  # Define target Q-network
         self.target_q_net.load_state_dict(self.q_net.state_dict())  # Sync target net
         self.target_q_net.eval()
 
@@ -51,14 +54,12 @@ class Agent_DQN(Agent):
         self.learning_rate = 1e-4
 
         self.optimizer = optim.Adam(self.q_net.parameters(), lr=self.learning_rate)
-        # self.loss = torch.nn.MSELoss()
 
+        self.device = device  # Store the device (GPU/CPU)
+        
         if args.test_dqn:
-            #you can load your model here
             print('loading trained model')
-            ###########################
-            # YOUR IMPLEMENTATION HERE #
-            self.q_net.load_state_dict(torch.load('model.pth'))
+            self.q_net.load_state_dict(torch.load('model.pth', map_location=device))
 
 
     def init_game_setting(self):
@@ -89,8 +90,8 @@ class Agent_DQN(Agent):
 
         ###########################
         if test or np.random.rand() > self.epsilon:
-            # Convert observation to tensor and use Q-network
-            observation = torch.FloatTensor(observation).unsqueeze(0)
+            # Convert observation to tensor and rearrange dimensions
+            observation = torch.FloatTensor(observation).unsqueeze(0).permute(0, 3, 1, 2)  # [batch_size, channels, height, width]
             with torch.no_grad():
                 q_values = self.q_net(observation)
             action = q_values.argmax().item()
@@ -115,26 +116,20 @@ class Agent_DQN(Agent):
         ###########################
         self.replay_buffer.append((state, action, reward, next_state, done))
 
-    def replay_buffer(self):
-        """ You can add additional arguments as you need.
-        Select batch from buffer.
-        """
-        ###########################
-        # YOUR IMPLEMENTATION HERE #
+    def get_batch_from_replay_buffer(self):
         if len(self.replay_buffer) < self.batch_size:
             return None
         batch = random.sample(self.replay_buffer, self.batch_size)
         states, actions, rewards, next_states, dones = zip(*batch)
-        
-        # Convert to torch tensors for processing in the neural network
-        states = torch.FloatTensor(np.array(states))
-        actions = torch.LongTensor(actions)
-        rewards = torch.FloatTensor(rewards)
-        next_states = torch.FloatTensor(np.array(next_states))
-        dones = torch.FloatTensor(dones)
-        
-        return states, actions, rewards, next_states, dones
 
+        # Convert to torch tensors
+        states = torch.FloatTensor(np.array(states)).permute(0, 3, 1, 2).to(self.device)
+        actions = torch.LongTensor(actions).to(self.device)
+        rewards = torch.FloatTensor(rewards).to(self.device)
+        next_states = torch.FloatTensor(np.array(next_states)).permute(0, 3, 1, 2).to(self.device)
+        dones = torch.FloatTensor(dones).to(self.device)
+
+        return states, actions, rewards, next_states, dones
 
         ###########################
         # return
@@ -149,17 +144,24 @@ class Agent_DQN(Agent):
 
 
         ###########################
-        for episode in range(1000):  # Example for 1000 episodes
+        print('Start training')
+        for episode in range(1000):  # Train over 1000 episodes
             state = self.env.reset()
-            for t in range(500):  # Example for 500 steps per episode
+
+            for t in range(500):  # For a maximum of 500 steps per episode
                 action = self.make_action(state, test=False)
                 next_state, reward, done, _, _ = self.env.step(action)
+                print("reward: ", reward)
+
+                # next_state = torch.FloatTensor(next_state).unsqueeze(0).permute(0, 3, 1, 2).to(self.device)  # Move to GPU
 
                 # Store transition in replay buffer
+                # self.push(state.cpu(), action, reward, next_state.cpu(), done)
+                # self.push(torch.FloatTensor(state).cpu(), action, reward, torch.FloatTensor(next_state).cpu(), done)
                 self.push(state, action, reward, next_state, done)
 
                 # Sample a batch and perform training
-                batch = self.replay_buffer()
+                batch = self.get_batch_from_replay_buffer()
                 if batch:
                     states, actions, rewards, next_states, dones = batch
 
@@ -170,10 +172,8 @@ class Agent_DQN(Agent):
                     next_q_values = self.target_q_net(next_states).max(1)[0]
                     target_q_values = rewards + (self.gamma * next_q_values * (1 - dones))
 
-                    # Loss = (predicted Q - target Q)^2
+                    # Compute loss and perform optimization step
                     loss = F.mse_loss(q_values, target_q_values.detach())
-
-                    # Backpropagation and optimization step
                     self.optimizer.zero_grad()
                     loss.backward()
                     self.optimizer.step()
@@ -182,10 +182,10 @@ class Agent_DQN(Agent):
                 if done:
                     break
 
-            # Decay epsilon after each episode (epsilon-greedy)
+            # Decay epsilon after each episode (epsilon-greedy exploration)
             if self.epsilon > self.epsilon_min:
                 self.epsilon *= self.epsilon_decay
 
-            # Optionally, update target network every N steps/episodes
+            # Optionally, update target network every 10 episodes
             if episode % 10 == 0:
                 self.target_q_net.load_state_dict(self.q_net.state_dict())

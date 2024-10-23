@@ -54,7 +54,7 @@ class DQN(nn.Module):
         x = F.relu(self.conv3(x))  # [batch_size, 64, 7, 7]
 
         # Flatten the output from the conv layers to feed into the fully connected layers
-        x = x.view(x.size(0), -1)  # [batch_size, 64*7*7]
+        x = x.reshape(x.size(0), -1)  # [batch_size, 64*7*7]
 
         # Pass through fully connected layers
         x = F.relu(self.fc1(x))  # [batch_size, 512]

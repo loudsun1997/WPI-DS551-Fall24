@@ -4,10 +4,18 @@
 #gymnasium[atari]
 #autorom[accept-rom-license]
 #using the following command to install these packages
+
+
+pip install torch pandas
 pip install opencv-python-headless gymnasium[atari] autorom[accept-rom-license]
-#for the Atari wrapper, install the following two items
 pip install -U "ray[rllib]" ipywidgets
-#for video recording in testing
-conda install -c conda-forge moviepy, conda install -c conda-forge ffmpeg, conda update ffmpeg
-#for testing
+pip install --upgrade scipy numpy
+pip install moviepy ffmpeg tqdm
+
+export PATH=/home/zyang12/miniconda3/envs/project33/bin:$PATH
+
+
+conda install -c conda-forge moviepy
+conda install -c conda-forge ffmpeg
+conda update ffmpeg
 conda install -c conda-forge tqdm
